@@ -1,0 +1,16 @@
+{
+  "course": "Computer_Vision",
+  "version": "a69283b3779a",
+  "files": {
+    "README.md": "1149216d7d2fa446a14ff86f9b5cf43fbe83579717947bc72c7622d2eb657fc6",
+    "__init__.py": "18caa9da8261d294aae3840e601747018851635982a3fd3eb76c995e2a34a6b1",
+    "checks.py": "70fb99a8625e882668ed6f84c22558e582d5f380fb87bb5e3e5abc8293633f25",
+    "cvtools.py": "cd318a8e1333b18a38c74e9b35b3f1a3f06d322ae58cac350a7b35571081cc54",
+    "data/README.md": "7151bff96cf1973cbcf6832e3ce3faa837c8e14f79f97522e3b13dd7c6cbe365",
+    "data/hopper.jpg": "a8ca6d734765703b09728ab47fe59f473d93ae3967fc24c7c0288c3c7adb7130",
+    "data/illusion.png": "cf0fb9c5b5163965c7f55358f71d055f727c316385cc64c8afd0ba32810bf698",
+    "data/traffic_lights/green.png": "d0fa98feada610059006a596a944f50595ce5dd0a133d8700085e622fdc1f079",
+    "data/traffic_lights/red.png": "9f3361dee1c6afd491d02060c40d8f750d1fa5c7763c268f6bb63d2bddd41504",
+    "data/traffic_lights/yellow.png": "38dd273eca115af5d4dd4d6652bce217160aeb25b96b6b19d778d15d921866b4"
+  }
+}

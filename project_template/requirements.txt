@@ -1,0 +1,6 @@
+numpy>=1.26
+opencv-contrib-python>=4.8,<5
+matplotlib>=3.8
+pillow>=10
+pandas>=2.2
+jupyterlab>=4

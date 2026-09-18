@@ -1,0 +1,12 @@
+# Исходники с телефона: большие и с метаданными (в том числе GPS). В git — только data/raw
+data/phone/*
+!data/phone/.gitkeep
+
+# Секреты: ключи API храните в .env и никогда не коммитьте
+.env
+
+# Служебные файлы
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+.DS_Store
