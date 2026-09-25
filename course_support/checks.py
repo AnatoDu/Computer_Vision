@@ -208,7 +208,7 @@ def _check_project_created(project_dir):
     missing = [name for name in required if not (project_dir / name).exists()]
     if missing:
         return False, 'скопируйте полный project_template; не хватает: ' + ', '.join(missing)
-    return True, 'собственная папка с тетрадями и поддержкой готова; Git сегодня необязателен'
+    return True, 'собственная папка с тетрадями и поддержкой готова; Git необязателен весь семестр'
 
 
 
@@ -364,3 +364,31 @@ def _check_remote(project_dir):
         return False, (f'не отправлено коммитов: {count}. Без доступа к сети это нормально: '
                        'отправьте их дома или со своего ноутбука (git push)')
     return True, f'всё отправлено на {url}. Эту ссылку и кладите в резюме'
+
+
+# Занятие 2. CPU, предоставленные кадры, без Git.
+@_task('02.1.1')
+def _distance_sizes(near, far):
+    ok = np.isclose(near,250) and np.isclose(far,125)
+    return bool(ok), 'Расстояние вдвое — высота вдвое меньше' if ok else 'Проверьте h=f*H/Z, f=500, H=1'
+
+@_task('02.1.2')
+def _clean_exif(count, size):
+    ok = count==0 and tuple(size)==(640,480)
+    return ok, 'EXIF отсутствует, размер сохранён; пиксели проверьте сами' if ok else 'Откройте именно сохранённую копию без EXIF'
+
+@_task('02.2.1')
+def _corners_other(found,corners):
+    ok = bool(found) and corners is not None and np.asarray(corners).shape in ((54,1,2),(54,2))
+    return ok, 'Найдены 54 внутренних угла' if ok else 'Шаблон (9,6), исходный учебный кадр'
+
+@_task('02.2.2')
+def _corrected_other(original,corrected,K,dist):
+    expected=cv2.undistort(original,K,dist)
+    ok=corrected.shape==original.shape and np.allclose(corrected,expected,atol=1) and not np.array_equal(original,corrected)
+    return bool(ok), 'Исправление применено; объясните картинку' if ok else 'Примените undistort к новому кадру с найденными K/dist'
+
+@_task('02.2.3')
+def _bad_measurement(base,bad):
+    ok=np.isfinite(base) and np.isfinite(bad) and 0<=base<bad and 2<bad<4
+    return bool(ok), 'Одно неверное измерение увеличило RMS' if ok else 'Сдвиньте x только первого угла на 20 px; модель оставьте прежней'
