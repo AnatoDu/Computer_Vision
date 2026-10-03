@@ -392,3 +392,56 @@ def _corrected_other(original,corrected,K,dist):
 def _bad_measurement(base,bad):
     ok=np.isfinite(base) and np.isfinite(bad) and 0<=base<bad and 2<bad<4
     return bool(ok), 'Одно неверное измерение увеличило RMS' if ok else 'Сдвиньте x только первого угла на 20 px; модель оставьте прежней'
+
+# Блок 3: численные результаты операций; объяснения остаются преподавателю.
+@_task('03.1.1')
+def _one_pixel(value, identity):
+    expected = np.zeros((3,3)); expected[1,1] = 1
+    ok = abs(float(value)-170/9) < 1e-8 and np.asarray(identity).shape == (3,3) and np.allclose(identity, expected)
+    return bool(ok), 'Среднее и тождественное ядро верны' if ok else 'Усредняем 170/9; тождественное ядро берёт только центр'
+
+
+@_task('03.1.2')
+def _manual_filter_result(manual, opencv):
+    small = np.arange(25, dtype=np.float64).reshape(5,5)
+    expected = cv2.filter2D(small, cv2.CV_64F, np.ones((3,3))/9, borderType=cv2.BORDER_REFLECT_101)
+    ok = all(np.asarray(x).shape == (5,5) and np.allclose(x,expected,atol=1e-10,rtol=0) for x in [manual,opencv])
+    return bool(ok), 'Операции и обработка края совпали' if ok else 'Проверьте среднее 3×3, float и reflect / BORDER_REFLECT_101'
+
+
+@_task('03.1.3')
+def _sharp_result(kernel, result, source):
+    expected_kernel = np.array([[0,-.5,0],[-.5,3,-.5],[0,-.5,0]])
+    if np.asarray(kernel).shape != (3,3) or not np.allclose(kernel, expected_kernel):
+        return False, 'Для a=0.5 центр 3, четыре соседа -0.5, углы 0'
+    expected = cv2.filter2D(np.asarray(source,dtype=np.float64), -1, expected_kernel, borderType=cv2.BORDER_REFLECT_101)
+    ok = np.asarray(result).shape == expected.shape and np.issubdtype(np.asarray(result).dtype,np.floating) and np.allclose(result,expected)
+    return bool(ok), 'Ядро и результат верны; эффект объясните на выбранном участке' if ok else 'Сохраняйте результат float до clip; clip нужен только при показе/сохранении'
+
+
+@_task('03.2.1')
+def _impulse_result(noisy, source):
+    source = np.asarray(source)
+    mask = np.random.default_rng(42).random(source.shape)
+    expected = source.copy()
+    expected[mask < .04] = 0
+    expected[mask > .96] = 255
+    ok = np.asarray(noisy).dtype == np.uint8 and np.array_equal(noisy, expected)
+    return bool(ok), 'Повторяемый импульсный шум получен' if ok else 'Для проверки используйте amount=0.08, seed=42 и исходное clean'
+
+
+@_task('03.2.2')
+def _median_result(result, noisy):
+    expected = cv2.medianBlur(noisy,3)
+    ok = np.array_equal(result,expected)
+    return bool(ok), 'Медиана 3×3 применена; сравните также детали' if ok else 'Нужна medianBlur(my_noisy, 3), без повторной генерации шума'
+
+
+@_task('03.2.3')
+def _resize_result(small, nearest, linear, source):
+    height,width = source.shape
+    expected_small = cv2.resize(source,(width//4,height//4),interpolation=cv2.INTER_AREA)
+    expected_nearest = cv2.resize(expected_small,(width,height),interpolation=cv2.INTER_NEAREST)
+    expected_linear = cv2.resize(expected_small,(width,height),interpolation=cv2.INTER_LINEAR)
+    ok = all(np.array_equal(a,b) for a,b in [(small,expected_small),(nearest,expected_nearest),(linear,expected_linear)])
+    return bool(ok), 'Размеры и интерполяция верны; утерянные детали объясните сами' if ok else 'Проверьте порядок (width,height), коэффициент 4 и три режима интерполяции'
