@@ -8,16 +8,27 @@
 Проверка печатает ✅ или ❌ с подсказкой, а результат запоминает в словаре RESULTS
 (ничего не возвращает, чтобы Jupyter не печатал лишнего). Необязательные задания
 могут ответить ℹ️ — это не ошибка. summary('01.1') показывает итог по тетради.
-Проверки не требуют интернета. Модуль использует только стандартную библиотеку,
-NumPy и OpenCV.
+Проверки не требуют интернета. Проверки 02.1 и расчёта RMS 02.2.3 работают на NumPy без OpenCV;
+проверки блока 4 также не требуют OpenCV. Остальным ранним заданиям
+нужны библиотеки выбранного маршрута. При отсутствии зависимости проверка
+раннего задания пропускается с сообщением и не считается выполненной.
 """
 
 import os
 import subprocess
 from pathlib import Path
 
-import cv2
-import numpy as np
+# Блок 4 допускает обычный Python без пакетов обработки изображений.
+# Старые проверки сохраняют свои зависимости и не объявляются выполненными
+# при их отсутствии.
+try:
+    import cv2
+except (ImportError, OSError):
+    cv2 = None
+try:
+    import numpy as np
+except (ImportError, OSError):
+    np = None
 
 COURSE_DIR = Path(__file__).resolve().parent
 DATA_DIR = COURSE_DIR / 'data'
@@ -38,6 +49,11 @@ def check(task_id, *args, **kwargs):
     func = _TASKS.get(task_id)
     if func is None:
         print(f'❓ Проверка для задания {task_id} не найдена. Получите актуальную папку course_support у преподавателя')
+        return
+    needs_numpy = not task_id.startswith('04.')
+    needs_opencv = needs_numpy and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
+    if (needs_numpy and np is None) or (needs_opencv and cv2 is None):
+        print('ℹ️ Эта проверка требует NumPy/OpenCV и пока не запускалась. Используйте раздел без OpenCV; проверка не засчитана автоматически.')
         return
     try:
         ok, message = func(*args, **kwargs)
@@ -445,3 +461,34 @@ def _resize_result(small, nearest, linear, source):
     expected_linear = cv2.resize(expected_small,(width,height),interpolation=cv2.INTER_LINEAR)
     ok = all(np.array_equal(a,b) for a,b in [(small,expected_small),(nearest,expected_nearest),(linear,expected_linear)])
     return bool(ok), 'Размеры и интерполяция верны; утерянные детали объясните сами' if ok else 'Проверьте порядок (width,height), коэффициент 4 и три режима интерполяции'
+
+# Блок 4: ответы проверяются без OpenCV.
+@_task('04.1.1')
+def _edge_differences(values):
+    ok=list(values)==[0,0,100,0,-100,0]
+    return ok,'Разности и знак перехода верны' if ok else 'Вычитайте левый пиксель из правого; ответ короче исходного ряда на один элемент'
+
+@_task('04.1.2')
+def _sobel_pixel(gx,gy,magnitude):
+    ok=abs(gx-160)<1e-8 and abs(gy)<1e-8 and abs(magnitude-160)<1e-8
+    return bool(ok),'Градиент направлен по x; граница вертикальная' if ok else 'Умножайте элементы окна на соответствующие веса, затем сложите'
+
+@_task('04.1.3')
+def _hysteresis_chain(kept):
+    ok=list(kept)==[False,True,True,True,False,False,False]
+    return ok,'Слабая цепочка связана с сильной; отдельный отклик отброшен' if ok else 'Сильный отклик в позиции 1; слабые 2 и 3 связаны с ним, позиция 5 отделена нулём'
+
+@_task('04.2.1')
+def _binary_threshold(mask):
+    ok=list(mask)==[0,0,0,1,1]
+    return ok,'Порог строгий: равенство не включено' if ok else 'Для values > 128 число 128 остаётся фоном'
+
+@_task('04.2.2')
+def _morphology_center(eroded_center,dilated_center):
+    ok=eroded_center==0 and dilated_center==1
+    return bool(ok),'Минимум и максимум окна вычислены' if ok else 'В окне есть 0 и 1: все белые? хотя бы один белый?'
+
+@_task('04.2.3')
+def _reference_measurement(width_mm,absolute_error,relative_percent):
+    ok=abs(width_mm-77)<1e-8 and abs(absolute_error-3)<1e-8 and abs(relative_percent-3.75)<1e-8
+    return bool(ok),'Масштаб и обе ошибки посчитаны' if ok else '100 пикселей соответствуют 50 мм, пробное измерение 154 пикселя, эталонная ширина 80 мм'
