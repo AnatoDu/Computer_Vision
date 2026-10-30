@@ -1,10 +1,10 @@
 {
   "course": "Computer_Vision",
-  "version": "09cc52b2635c",
+  "version": "c940c62ad3bb",
   "files": {
     "README.md": "1149216d7d2fa446a14ff86f9b5cf43fbe83579717947bc72c7622d2eb657fc6",
     "__init__.py": "18caa9da8261d294aae3840e601747018851635982a3fd3eb76c995e2a34a6b1",
-    "checks.py": "4aec8aff42b0db6beb68d5d082539d284d2f862118abe3ef60bbebe0d0268428",
+    "checks.py": "193d1db241ee0bbcc4bb96edca8c6337e3696e193ce068a49cfb804bbe6d9783",
     "cvtools.py": "cd318a8e1333b18a38c74e9b35b3f1a3f06d322ae58cac350a7b35571081cc54",
     "data/README.md": "7151bff96cf1973cbcf6832e3ce3faa837c8e14f79f97522e3b13dd7c6cbe365",
     "data/camera/README.md": "e5f53b3ccb6d0d435190cf4b340c73d670ce71ca6af6a1e42f92af472cf056ec",
@@ -31,10 +31,14 @@
     "data/edges/measure.png": "611cdc4912b9b61dadbc6f56148cded3b13e3be8911d60473ec18af77d34f82a",
     "data/edges/measurement.json": "dfa2fe788e27a521c394f4f151b948367e57287186b07f0a44ef6a7bb49a6235",
     "data/edges/scene.png": "4e8d2de2852c619da3222fc0767a37e4e0b48a80e6640a70d4ef1b7baf7ad79f",
+    "data/features/SOURCE.md": "545133dc7b1fa2ff408d52f82f2ecf2830013c184c557a8f0562db038d05cf3f",
+    "data/features/card.npy": "b45703154db3b60553dd4afa87c42992a30b7d33e48670ef6c39c68574ca3087",
+    "data/features/document.npy": "ecf7c4c915bcc22de9e71b76ac866860c2b7c508d54eee283b954c48e8c0239d",
     "data/hopper.jpg": "a8ca6d734765703b09728ab47fe59f473d93ae3967fc24c7c0288c3c7adb7130",
     "data/illusion.png": "cf0fb9c5b5163965c7f55358f71d055f727c316385cc64c8afd0ba32810bf698",
     "data/traffic_lights/green.png": "d0fa98feada610059006a596a944f50595ce5dd0a133d8700085e622fdc1f079",
     "data/traffic_lights/red.png": "9f3361dee1c6afd491d02060c40d8f750d1fa5c7763c268f6bb63d2bddd41504",
-    "data/traffic_lights/yellow.png": "38dd273eca115af5d4dd4d6652bce217160aeb25b96b6b19d778d15d921866b4"
+    "data/traffic_lights/yellow.png": "38dd273eca115af5d4dd4d6652bce217160aeb25b96b6b19d778d15d921866b4",
+    "geometry.py": "09ee322ef5920ee1c32c3ee3b2d05436f875f75bf1182020cec3d1cb049535c8"
   }
 }

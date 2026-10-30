@@ -51,7 +51,7 @@ def check(task_id, *args, **kwargs):
         print(f'❓ Проверка для задания {task_id} не найдена. Получите актуальную папку course_support у преподавателя')
         return
     needs_numpy = not task_id.startswith('04.')
-    needs_opencv = needs_numpy and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
+    needs_opencv = needs_numpy and not task_id.startswith('05.') and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
     if (needs_numpy and np is None) or (needs_opencv and cv2 is None):
         print('ℹ️ Эта проверка требует NumPy/OpenCV и пока не запускалась. Используйте раздел без OpenCV; проверка не засчитана автоматически.')
         return
@@ -492,3 +492,37 @@ def _morphology_center(eroded_center,dilated_center):
 def _reference_measurement(width_mm,absolute_error,relative_percent):
     ok=abs(width_mm-77)<1e-8 and abs(absolute_error-3)<1e-8 and abs(relative_percent-3.75)<1e-8
     return bool(ok),'Масштаб и обе ошибки посчитаны' if ok else '100 пикселей соответствуют 50 мм, пробное измерение 154 пикселя, эталонная ширина 80 мм'
+# Блок 5: полный основной путь на NumPy; OpenCV для этих проверок не требуется.
+@_task('05.1.1')
+def _feature_shift(right, down, corner_right, corner_down):
+    ok = np.allclose([right,down,corner_right,corner_down],[3.43,0,1.96,1.96],atol=1e-8)
+    return bool(ok), 'У края есть незаметное направление, у угла изменяются оба окна' if ok else 'Проверьте (x,y), dx/dy и радиус3'
+
+@_task('05.1.2')
+def _feature_response(responses):
+    values = np.asarray(responses)
+    ok = values.shape == (3,) and np.allclose(values,[0,-2.56,53.76])
+    return bool(ok), 'Фон, край и угол различены по отклику' if ok else 'R=A*C-B²-0.04*(A+C)²; порядок фон,край,угол'
+
+@_task('05.1.3')
+def _feature_invariance(brightness, rotation):
+    ok = np.isclose(brightness,0,atol=1e-8) and np.isclose(rotation,np.sqrt(2))
+    return bool(ok), 'Проверены два разных изменения, ограничения видны' if ok else 'Вычитайте среднее отдельно из каждого развёрнутого окна'
+
+@_task('05.2.1')
+def _feature_ratio(mask, fraction):
+    values = np.asarray(mask)
+    ok = values.dtype == bool and values.shape == (4,) and np.array_equal(values,[True,False,False,True]) and fraction == 0.5
+    return bool(ok), 'Неоднозначные совпадения отвергнуты' if ok else 'Используйте строгое d1<0.75*d2; две нулевые дистанции не дают уникального кандидата'
+
+@_task('05.2.2')
+def _feature_homogeneous(homogeneous, xy):
+    first, second = np.asarray(homogeneous), np.asarray(xy)
+    ok = first.shape == (3,) and second.shape == (2,) and np.allclose(first,[20,40,2]) and np.allclose(second,[10,20])
+    return bool(ok), 'Однородные координаты разделены на знаменатель' if ok else 'Сначала H@[10,20,1], затем деление обеих координат на2'
+
+@_task('05.2.3')
+def _feature_control(errors):
+    values = np.asarray(errors)
+    ok = values.shape == (4,) and np.isfinite(values).all() and (values >= 0).all() and (values < 1e-7).all()
+    return bool(ok), 'Контрольные точки согласованы; ход расчёта объясните отдельно' if ok else 'Четыре расстояния в пикселях, преобразования в порядке лист→фото→лист'
