@@ -51,7 +51,7 @@ def check(task_id, *args, **kwargs):
         print(f'❓ Проверка для задания {task_id} не найдена. Получите актуальную папку course_support у преподавателя')
         return
     needs_numpy = not task_id.startswith('04.')
-    needs_opencv = needs_numpy and not task_id.startswith('05.') and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
+    needs_opencv = needs_numpy and not task_id.startswith(('05.','06.','07.')) and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
     if (needs_numpy and np is None) or (needs_opencv and cv2 is None):
         print('ℹ️ Эта проверка требует NumPy/OpenCV и пока не запускалась. Используйте раздел без OpenCV; проверка не засчитана автоматически.')
         return
@@ -526,3 +526,123 @@ def _feature_control(errors):
     values = np.asarray(errors)
     ok = values.shape == (4,) and np.isfinite(values).all() and (values >= 0).all() and (values < 1e-7).all()
     return bool(ok), 'Контрольные точки согласованы; ход расчёта объясните отдельно' if ok else 'Четыре расстояния в пикселях, преобразования в порядке лист→фото→лист'
+
+@_task('06.1.1')
+def _seg_select(function):
+    a=np.array([[2,2,7],[2,7,7]])
+    cases=[(a,(0,0),(0,2)),(a,(0,2),(0,0)),(np.where(a==2,19,4),(0,0),(0,2)),(a,(0,0),(0,1))]
+    for labels,object_point,background_point in cases:
+        actual=function(labels.copy(),object_point,background_point)
+        if labels[object_point]==labels[background_point]:
+            if actual is not None:return False,'При противоречивых указаниях верните None, а не уверенную маску'
+        else:
+            expected=labels==labels[object_point]
+            actual=np.asarray(actual)
+            if actual.dtype!=bool or actual.shape!=a.shape or not np.array_equal(actual,expected):
+                return False,'Маска зависит от точки объекта, а не постоянного номера группы'
+    return True,'Перенумерация выдержана; конфликт подсказок обнаружен'
+
+@_task('06.1.2')
+def _seg_cost(metrics):
+    ok=set(metrics)=={'wide','narrow'} and np.allclose(metrics['wide'],[0,1300,3600/4900]) and np.allclose(metrics['narrow'],[1100,0,2500/3600])
+    return bool(ok),'Числа верны; выбор по цене ошибки объясните отдельно' if ok else 'Отличите пропуск объекта от лишнего фона; IoU использует объединение'
+
+@_task('06.1.3')
+def _seg_instances(score,count):
+    ok=np.isclose(score,1) and count==2
+    return bool(ok),'Идеальный передний план ещё не проверяет разделение экземпляров' if ok else 'Сравниваем объединения; нулевая метка — фон, не объект'
+
+@_task('06.2.1')
+def _retrieval_collision(a,b,global_feature,spatial_feature):
+    a,b=np.asarray(a),np.asarray(b)
+    if a.shape!=(128,192,3) or b.shape!=a.shape or not np.isfinite(a).all() or not np.isfinite(b).all():
+        return False,'Нужны две картинки128×192×3 с конечными яркостями'
+    for pic in (a,b):
+        red=np.all(pic==[1,0,0],axis=2);blue=np.all(pic==[0,0,1],axis=2)
+        if not np.all(red|blue) or red.sum()!=128*192//2:return False,'В каждой картинке ровно половина красных и синих пикселей'
+    ok=not np.array_equal(a,b) and np.allclose(global_feature(a),global_feature(b)) and not np.allclose(spatial_feature(a),spatial_feature(b))
+    return bool(ok),'Контрпример показывает, какую информацию потерял признак' if ok else 'Нужны одинаковый состав цветов и различимое расположение по частям'
+
+@_task('06.2.2')
+def _retrieval_unique(function):
+    ids=['A','A','B','C','B']
+    for ranking,k,expected in [([0,1,2,3,4],3,[0,2,3]),([4,1,0,2,3],3,[4,1,3]),([0,1],3,[0]),([0,1,2],0,[])]:
+        if list(function(ranking,ids,k))!=expected:return False,'Сохраните порядок, пропускайте повтор объекта, учитывайте нехватку и k=0'
+    return True,'Выдача содержит лучшие кадры разных объектов'
+
+@_task('06.2.3')
+def _retrieval_overlap(function):
+    for a,b,want in [(['a','b','c'],['a','b','c'],{'a','b','c'}),(['x','x','y'],['z','y'],{'y'}),(['x'],['z'],set())]:
+        if set(function(a,b))!=want:return False,'Проверяем общие object_id, а не имена файлов или их количество'
+    return True,'Утечка по идентификаторам обнаруживается; ограничения генератора обсудите отдельно'
+
+# Блок 07: собственные расчёты на NumPy, OpenCV не обязателен.
+@_task('07.1.1')
+def _video_velocity(function):
+    for times,positions,expected in [([0,.2,.5],[40,64,100],[120,120]),([1,1.5,3],[10,5,20],[-10,10])]:
+        actual=np.asarray(function(times,positions))
+        if actual.shape!=(2,) or not np.allclose(actual,expected):
+            return False,'Делите разность координат на соответствующий реальный промежуток, сохраняйте знак'
+    for times in ([0,0,1],[1,.5,2]):
+        try: function(times,[0,2,3])
+        except ValueError: continue
+        return False,'Повтор или убывание времени должны вызвать ValueError'
+    return True,'Неравномерное время и направление учтены; единицы — px/s'
+
+@_task('07.1.2')
+def _video_majority(scene,background,truth,function):
+    scene,background,truth=np.asarray(scene),np.asarray(background),np.asarray(truth)
+    if scene.shape!=(120,180) or background.shape!=scene.shape or truth.shape!=scene.shape or truth.dtype!=bool:
+        return False,'Нужны три поля 120×180, истина — bool-маска'
+    if not (.5<truth.mean()<.95) or not np.all(background==50) or not np.array_equal(scene,np.where(truth,150,50)):
+        return False,'Фон 50, объект 150, объект больше половины, но не почти весь кадр'
+    result=np.asarray(function(scene,background))
+    if result.dtype!=bool or result.shape!=scene.shape or not np.array_equal(result,~truth):
+        return False,'На этом контрпримере поправка принимает объект за фон; проверьте результат'
+    return True,'Контрпример построен; объясните, почему оценка света стала неверной'
+
+@_task('07.1.3')
+def _video_episodes(function):
+    cases=[([False,True,False,True,True,True,True,False,True,True,True],3,[5,10]),
+           ([True]*6,3,[2]),([],3,[]),([True,False,True,True],1,[0,2]),([True,True],3,[])]
+    for flags,required,expected in cases:
+        if list(function(flags,required))!=expected:
+            return False,'Одно сообщение при подтверждении серии; после False новый эпизод'
+    return True,'События подтверждаются во времени без повторного сигнала на каждом кадре'
+
+@_task('07.2.1')
+def _video_jitter(truth,prediction):
+    a,b=np.asarray(truth,dtype=float),np.asarray(prediction,dtype=float)
+    if a.ndim!=1 or a.shape!=b.shape or not 4<=len(a)<=10 or not np.isfinite(a).all() or not np.isfinite(b).all():
+        return False,'Нужны два одинаковых по длине конечных ряда из 4–10 координат'
+    def crossings(x):return int(np.count_nonzero((x[:-1]<320)&(x[1:]>=320)))
+    overlap=np.maximum(0,80-np.abs(a-b))*80
+    scores=overlap/(2*80*80-overlap)
+    if crossings(a)!=1 or crossings(b)!=2 or not (scores>.9).all():
+        return False,'Истина пересекает один раз, прогноз два, каждая пара рамок имеет IoU > 0.9'
+    return True,'Высокий IoU совместим с ошибкой счёта: нужна метрика события'
+
+@_task('07.2.2')
+def _video_id_count(function):
+    cases=[([('a',300),('a',319),('a',321),('a',335)],1),
+           ([('a',319),('a',321),('a',318),('a',322)],0),
+           ([('a',300),('b',300),('a',340),('b',340),('a',300),('a',340)],2),
+           ([('a',340)],0),([('a',300),('a',None),('a',340)],0),
+           ([('a',300),('a',340),('a',None),('a',300),('a',340)],1),
+           ([('a',312),('a',328)],0),([],0)]
+    for records,expected in cases:
+        if function(records,320,8)!=expected:
+            return False,'Разделите сторону, неопределённую полосу, пропуск и память об учтённом ID'
+    return True,'Дрожание и пропуски учтены по контракту; правильность самих ID проверяется отдельно'
+
+@_task('07.2.3')
+def _video_coverage(function):
+    cases=[((90,150),[(10,20,30,50),(80,20,110,50)],[(10,20,30,50),(80,20,100,50),(50,0,70,15)],[1,2/3]),
+           ((10,10),[(0,0,10,10)],[(0,0,5,10),(5,0,10,10)],[1]),
+           ((10,10),[(0,0,10,10)],[(0,0,5,10),(0,0,5,10)],[.5]),
+           ((10,10),[(2,2,4,4)],[],[0])]
+    for shape,needed,covered,expected in cases:
+        actual=np.asarray(function(shape,needed,covered))
+        if actual.shape!=(len(expected),) or not np.allclose(actual,expected):
+            return False,'Считайте объединение закрашенных пикселей, затем долю внутри каждой нужной области'
+    return True,'Покрытие проверено без двойного учёта; полнота списка объектов остаётся отдельным вопросом'

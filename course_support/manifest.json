@@ -1,12 +1,12 @@
 {
   "course": "Computer_Vision",
-  "version": "c940c62ad3bb",
+  "version": "961fcb4aab06",
   "files": {
-    "README.md": "1149216d7d2fa446a14ff86f9b5cf43fbe83579717947bc72c7622d2eb657fc6",
+    "README.md": "9b8fb66f29641a1bba10e576405d67fa6b18e33b2327cc9b7db21662ca08be8d",
     "__init__.py": "18caa9da8261d294aae3840e601747018851635982a3fd3eb76c995e2a34a6b1",
-    "checks.py": "193d1db241ee0bbcc4bb96edca8c6337e3696e193ce068a49cfb804bbe6d9783",
+    "checks.py": "0aa44b5d9d5aa41ff4a3473f5041d37f9b595e1b1a8900c1046d5e559b85d8f0",
     "cvtools.py": "cd318a8e1333b18a38c74e9b35b3f1a3f06d322ae58cac350a7b35571081cc54",
-    "data/README.md": "7151bff96cf1973cbcf6832e3ce3faa837c8e14f79f97522e3b13dd7c6cbe365",
+    "data/README.md": "c9858c2d7b37b72a59a98f95de0991c2282d93e4b025d952ac7f4e0f9b88ea6a",
     "data/camera/README.md": "e5f53b3ccb6d0d435190cf4b340c73d670ce71ca6af6a1e42f92af472cf056ec",
     "data/camera/board_00.png": "8141458a1746c636373276c39f6dd8be7f673b857328c01e607025004ac91d60",
     "data/camera/board_01.png": "09d29fb4fb1e47a6603643163381f8e050a79ef073f2e151268f920e9174f8ba",
@@ -36,9 +36,21 @@
     "data/features/document.npy": "ecf7c4c915bcc22de9e71b76ac866860c2b7c508d54eee283b954c48e8c0239d",
     "data/hopper.jpg": "a8ca6d734765703b09728ab47fe59f473d93ae3967fc24c7c0288c3c7adb7130",
     "data/illusion.png": "cf0fb9c5b5163965c7f55358f71d055f727c316385cc64c8afd0ba32810bf698",
+    "data/segmentation/SOURCE.md": "23ac74d505bd7ce002d4a3d4ce93b6ace3da659cc13572eccba9c478602b0a54",
+    "data/segmentation/coffee.npy": "8b2aebb8b9dcc9d21dc0528cfaf405dc77cdd6546d5dea86a51e6db3b53f88e1",
+    "data/segmentation/coins.npy": "57ad2bc6b136659a1c84d7d35e6b20e14db4ecd6ee6584d077466cfac877831d",
+    "data/segmentation/covers.npz": "8e5c4c21a7601125a9ffe0de4ad03d85e7d9f2dd81d41a6cde34d5595cb1dd23",
+    "data/segmentation/touching.npz": "42d648a42332437f0b7fbc75f743bdb8727ef1569bb06b6fbc0c359fa1318b47",
     "data/traffic_lights/green.png": "d0fa98feada610059006a596a944f50595ce5dd0a133d8700085e622fdc1f079",
     "data/traffic_lights/red.png": "9f3361dee1c6afd491d02060c40d8f750d1fa5c7763c268f6bb63d2bddd41504",
     "data/traffic_lights/yellow.png": "38dd273eca115af5d4dd4d6652bce217160aeb25b96b6b19d778d15d921866b4",
-    "geometry.py": "09ee322ef5920ee1c32c3ee3b2d05436f875f75bf1182020cec3d1cb049535c8"
+    "data/video/SOURCE.md": "dd7e325c7225ce26d452cdccd846d581abec598a078fee4b33f02bca2b088b96",
+    "data/video/cascade_example.json": "412de7aa7ba3b35eee62650d79b5146a4827ef946b0f839ff38f3bc80b335d90",
+    "data/video/conveyor.avi": "c3b407849155abce8d387c6aba5fef00781e93325bf5cedf19a6c0a6b0a947a6",
+    "data/video/conveyor.npz": "510114967f07a2f1623b88210dd63b0909bcabbecb4c503a730077e351f983be",
+    "data/video/portrait.npy": "fee8fd8a73ca7e82b4d71fdd9b32e7ab28d64f033ad3ec84dff897d6ba14ddc5",
+    "data/video/preview.gif": "10e740fddc1532f13b41b205f7a578a00c86c77771a411ee6cf7ba972651b91f",
+    "geometry.py": "09ee322ef5920ee1c32c3ee3b2d05436f875f75bf1182020cec3d1cb049535c8",
+    "video.py": "b8950339a0f89691b036ac8d44070a3ca49b45bac1e139b35012835edcdc46c0"
   }
 }
