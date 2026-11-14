@@ -1,0 +1,27 @@
+{
+  "origin": "Executed main code of 10.2 on CPU; no exercises; original UCI tra/cv",
+  "generated": "2026-11-13",
+  "torch": "2.15.0",
+  "numpy": "2.5.4",
+  "python": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "data_sha256": "f2ec046e6480725183d37e5e4942825af05f49cc1870f5eb76c26b7dfeb8b326",
+  "weights_sha256": "e69ed8715d261ff6ba2a78fc89f1bd6e0584d1e88abb129ca92e92d9ed4f2668",
+  "architecture": [
+    1024,
+    32,
+    10
+  ],
+  "activation": "ReLU",
+  "optimizer": "SGD",
+  "lr": 0.1,
+  "seed": 42,
+  "epochs": 12,
+  "batch_size": 128,
+  "best_epoch": 12,
+  "selection": "first minimum validation CE",
+  "validation_accuracy": 0.9661733615221987,
+  "test_evaluated": false,
+  "script_seconds_including_setup": 1.5438805829908233,
+  "reproduce": "Run teacher/student 10.2 core with PyTorch; output weights/history saved by notebook. No earlier notebook required."
+}

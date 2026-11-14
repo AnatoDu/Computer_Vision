@@ -1,0 +1,22 @@
+{
+  "source": "https://archive.ics.uci.edu/static/public/80/optical+recognition+of+handwritten+digits.zip",
+  "archive_sha256": "0d7b054fea010270e9b3f06411c654c5e59547732ad626381980baffe0a23fb0",
+  "npz_sha256": "f2ec046e6480725183d37e5e4942825af05f49cc1870f5eb76c26b7dfeb8b326",
+  "parts": {
+    "train": {
+      "source": "optdigits-orig.tra",
+      "count": 1934,
+      "sha256_uncompressed": "b0649058daf39b41da11827b6f9d784333e85e7362539fe7afd26fef517b4a3f"
+    },
+    "validation": {
+      "source": "optdigits-orig.cv",
+      "count": 946,
+      "sha256_uncompressed": "686f79818680b16b5f5618e5f9e3dc792adfe7eb7c1d4ca7efa5d2c29aae3b28"
+    },
+    "test": {
+      "source": "optdigits-orig.windep",
+      "count": 1797,
+      "sha256_uncompressed": "084b7b5b20a4580fea9e778178c84b93f48d42a9b33671589475d3d430a226fd"
+    }
+  }
+}

@@ -51,7 +51,7 @@ def check(task_id, *args, **kwargs):
         print(f'❓ Проверка для задания {task_id} не найдена. Получите актуальную папку course_support у преподавателя')
         return
     needs_numpy = not task_id.startswith('04.')
-    needs_opencv = needs_numpy and not task_id.startswith(('05.','06.','07.')) and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
+    needs_opencv = needs_numpy and not task_id.startswith(('05.','06.','07.','08.','09.','10.')) and task_id not in {'02.1.1', '02.1.2', '02.2.3'}
     if (needs_numpy and np is None) or (needs_opencv and cv2 is None):
         print('ℹ️ Эта проверка требует NumPy/OpenCV и пока не запускалась. Используйте раздел без OpenCV; проверка не засчитана автоматически.')
         return
@@ -646,3 +646,118 @@ def _video_coverage(function):
         if actual.shape!=(len(expected),) or not np.allclose(actual,expected):
             return False,'Считайте объединение закрашенных пикселей, затем долю внутри каждой нужной области'
     return True,'Покрытие проверено без двойного учёта; полнота списка объектов остаётся отдельным вопросом'
+
+# Блок 08: разметка и оценка детекции. Только стандартный Python/NumPy.
+@_task('08.1.1')
+def _annotation_rule(box, rule):
+    import numpy as np
+    ok = np.allclose(box,[172,18,412,310]) and isinstance(rule,str) and len(rule.strip())>=15
+    return bool(ok), 'По нашей инструкции подходит B. Проверка видит выбор и текст; смысл правила обсудите отдельно.'
+
+@_task('08.1.2')
+def _annotation_resize(box, relative):
+    import numpy as np
+    ok = np.allclose(box,[30,20,90,60]) and np.allclose(relative,[.25,.25,.3,.3])
+    return bool(ok), 'Пиксели уменьшаются вдвое; доли центра и размеров сохраняются при таком масштабировании.'
+
+@_task('08.1.3')
+def _annotation_leak(groups, plan):
+    ok = set(groups)=={'cup_1'} and isinstance(plan,str) and len(plan.strip())>=15
+    return ok, 'Пересекается cup_1. План должен переносить всю группу или расширять набор; текст проверяем вместе.'
+
+@_task('08.2.1')
+def _metric_center(box):
+    import numpy as np
+    b=np.asarray(box,dtype=float)
+    if b.shape!=(4,) or not np.isfinite(b).all() or b[2]<=b[0] or b[3]<=b[1]:
+        return False,'Нужна конечная рамка положительной площади.'
+    center=np.array([(b[0]+b[2])/2,(b[1]+b[3])/2])
+    inter=max(0,min(10,b[2])-max(0,b[0]))*max(0,min(10,b[3])-max(0,b[1]))
+    area=(b[2]-b[0])*(b[3]-b[1])
+    overlap=inter/(100+area-inter)
+    return bool(np.allclose(center,[5,5]) and overlap<.1),'Сохраняем центр (5,5), но получаем IoU<0.1. Допустимы разные размеры.'
+
+@_task('08.2.2')
+def _metric_duplicates(answer):
+    import math
+    target={'tp':1,'fp':2,'fn':1,'precision':1/3,'recall':.5}
+    ok=all(k in answer and math.isclose(float(answer[k]),v) for k,v in target.items())
+    return ok,'Одна чашка найдена, два дубля лишние, вторая чашка пропущена.'
+
+@_task('08.2.3')
+def _metric_ranking(best,worst):
+    return list(best)==[1,1,0,0] and list(worst)==[0,0,1,1], 'Лучше поставить два TP первыми; хуже — после двух FP. Объясните, почему финальные доли равны.'
+
+# Блок 09: независимые группы и классический эксперимент на NumPy.
+@_task('09.1.1')
+def _split_labels(policy):
+    return policy=={'horizontal':'left','vertical':'right','rotate90':None}, 'Отражение может менять класс; поворот выводит пример за выбранные два направления.'
+
+@_task('09.1.2')
+def _split_transitive(groups):
+    ok=set(groups)=={'A','B','C','D'} and groups['A']==groups['B']==groups['C'] and groups['D']!=groups['A']
+    return ok, 'A,B,C связаны через серию и объект, D — другая группа. Номера групп произвольные.'
+
+@_task('09.1.3')
+def _split_audit(func):
+    cases=[([],set()),([{'group_id':'x','split':'train'},{'group_id':'x','split':'train'}],set()),
+           ([{'group_id':'a','split':'train'},{'group_id':'a','split':'test'},{'group_id':'b','split':'test'}],{'a'}),
+           ([{'group_id':7,'split':'validation'},{'group_id':7,'split':'test'}],{7})]
+    return all(set(func(rows))==wanted for rows,wanted in cases), 'Проверяем все пары частей и происхождение, не имя файла или хеш.'
+
+@_task('09.2.1')
+def _baseline_polarity(func):
+    import numpy as np
+    for values in [np.array([[0,128,255]],dtype=np.uint8),np.array([0,127.5,255])]:
+        got=np.asarray(func(values));want=1-values.astype(float)/255
+        if got.shape!=want.shape or not np.allclose(got,want):return False,'Штрих 0 → 1, фон 255 → 0; форма сохраняется.'
+    return True,'Подготовка согласует смысл пикселя и диапазон, а не только dtype.'
+
+@_task('09.2.2')
+def _baseline_feasible(func):
+    rows=[{'name':'A','validation_accuracy':.91,'latency_ms':80},
+          {'name':'B','validation_accuracy':.89,'latency_ms':12},
+          {'name':'C','validation_accuracy':.87,'latency_ms':5}]
+    ok=func(rows,20)=='B' and func(rows,5)=='C' and func(rows,1) is None and func([],100) is None
+    tied=[{'name':'x','validation_accuracy':.8,'latency_ms':2},{'name':'y','validation_accuracy':.8,'latency_ms':1}]
+    ok=ok and func(tied,5)=='x'
+    return ok,'Сначала допустимость, затем validation-качество; равенство сохраняет первый вариант.'
+
+@_task('09.2.3')
+def _baseline_blind(example,func):
+    import numpy as np
+    if not np.array_equal(example,[[95,0],[5,0]]):return False,'Строки — истина: 95 нулей и 5 единиц; все ответы в столбце 0.'
+    cases=[(np.array([[95,0],[5,0]]),{1}),(np.array([[0,0],[0,2]]),set()),(np.array([[0,3,0],[0,2,0],[1,0,0]]),{0,2})]
+    return all(set(func(a))==b for a,b in cases),'Класс слепой, если он присутствует в истине, но TP=0. Пустые строки — отдельное ограничение.'
+
+# Блок 10 работает на NumPy; проверки не требуют PyTorch или OpenCV.
+@_task('10.1.1')
+def _neuron_scale(gradient,lr):
+    return bool(np.isclose(gradient,-15) and np.isclose(lr,.001)), 'При неизменном начальном логите градиент вырос в 10 раз; влияние шага на z — в 100.'
+
+@_task('10.1.2')
+def _neuron_gradient(correct,wrong):
+    ok=np.asarray(correct).shape==(2,) and np.asarray(wrong).shape==(2,)
+    return bool(ok and np.allclose(correct,[-.5,1],atol=1e-6) and np.allclose(wrong,[.5,-1])), 'Численная производная [-0.5,1]; знак согласуется с вычитанием градиента.'
+
+@_task('10.1.3')
+def _neuron_cost(costs,threshold):
+    return bool(costs=={.4:1,.6:5} and np.isclose(threshold,.4)), 'Обе accuracy равны 0.75, стоимость — 1 против 5. Порог выбираем по постановке и validation.'
+
+@_task('10.2.1')
+def _mlp_offset(probabilities,losses):
+    p=np.asarray(probabilities); losses=np.asarray(losses)
+    expected=np.exp(np.array([0.,-1.,-2.])); expected/=expected.sum()
+    ok=p.shape==(2,3) and losses.shape==(2,)
+    return bool(ok and np.allclose(p,expected) and np.allclose(losses,-np.log(expected[2]))), 'Общий сдвиг логитов не меняет softmax; устойчивое вычитание максимума сохраняет отношения.'
+
+@_task('10.2.2')
+def _mlp_checkpoint(func):
+    ok=func([.8,.5,.42,.47,.51])==3 and func([.3,.2,.2])==2 and func([.4])==1 and func([]) is None
+    return ok, 'Выбираем первую минимальную validation-loss и сохраняем именно её веса; пустой журнал → None.'
+
+@_task('10.2.3')
+def _mlp_ablation(original,disabled):
+    a=np.asarray(original); b=np.asarray(disabled)
+    ok=a.shape==(2,) and b.shape==(3,2)
+    return bool(ok and np.allclose(a,[1,-1]) and np.allclose(b,[[-1,1],[1,-1],[2,-2]])), 'Нулевой нейрон здесь не влияет; первый и третий дают разные вклады. Для другой картинки влияние может измениться.'
